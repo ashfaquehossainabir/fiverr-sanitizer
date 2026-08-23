@@ -972,7 +972,7 @@ a {
   z-index: 100;
 }
 
-.modal.account-modal {
+.modal {
   width: 100%;
   max-width: 480px;
   background: var(--color-surface);
@@ -980,6 +980,11 @@ a {
   box-shadow: var(--shadow-lg);
   position: relative;
   padding: 32px 28px 28px;
+  animation: confirm-modal-in 0.16s ease;
+}
+
+.modal.account-modal {
+  max-width: 480px;
 }
 
 .modal-close {
