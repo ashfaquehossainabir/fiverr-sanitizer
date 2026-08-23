@@ -41,7 +41,7 @@ export default function Login() {
     <div className="auth-screen">
       <div className="auth-card">
         <div className="auth-brand">
-          <span className="auth-logo">&gt;_</span>
+          <span className="auth-logo">FS</span>
           <h1>Welcome back</h1>
           <p>Log in to keep sanitizing and organizing your Fiverr messages.</p>
         </div>

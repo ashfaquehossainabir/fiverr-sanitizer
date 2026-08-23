@@ -48,7 +48,7 @@ export default function Register() {
     <div className="auth-screen">
       <div className="auth-card">
         <div className="auth-brand">
-          <span className="auth-logo">&gt;_</span>
+          <span className="auth-logo">FS</span>
           <h1>Create your account</h1>
           <p>Organize sanitized Fiverr messages into tabs, synced everywhere.</p>
         </div>
