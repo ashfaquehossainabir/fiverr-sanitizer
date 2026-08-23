@@ -1986,24 +1986,26 @@ textarea:focus {
 }
 
 .admin-user-actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   margin-top: auto;
 }
 
 .admin-action-btn {
-  flex: 1;
-  min-width: 100px;
-  padding: 9px 10px;
+  min-width: 0;
+  padding: 9px 6px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border-strong);
   background: var(--color-surface-alt);
   color: var(--color-ink);
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
-  white-space: nowrap;
+  line-height: 1.3;
+  white-space: normal;
+  text-align: center;
+  word-break: break-word;
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
@@ -2251,11 +2253,11 @@ textarea:focus {
   }
 
   .admin-user-actions {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 
   .admin-action-btn {
-    width: 100%;
+    font-size: 13px;
   }
 
   .modal.reset-password-modal {
