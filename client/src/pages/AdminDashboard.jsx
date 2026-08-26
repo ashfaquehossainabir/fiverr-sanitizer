@@ -1,10 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/axios.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import ConfirmModal from "../components/ConfirmModal.jsx";
 import ResetPasswordModal from "../components/ResetPasswordModal.jsx";
 import Loader from "../components/Loader.jsx";
+
+// How often the dashboard silently re-checks for new pending registrations.
+const POLL_INTERVAL_MS = 20000;
 
 function getInitials(name) {
   if (!name) return "?";
@@ -38,38 +41,126 @@ export default function AdminDashboard() {
   const [deleteTarget, setDeleteTarget] = useState(null); // user pending deletion
   const [deleting, setDeleting] = useState(false);
 
-  const loadUsers = useCallback(async () => {
-    setLoading(true);
+  const [rejectTarget, setRejectTarget] = useState(null); // pending registration to reject
+  const [rejecting, setRejecting] = useState(false);
+
+  const [approvingId, setApprovingId] = useState(null); // pending registration currently being approved
+
+  const [notice, setNotice] = useState(""); // "new registration" alert banner
+  const knownPendingIds = useRef(null); // null until first load, then a Set of ids we've already surfaced
+
+  const [settings, setSettings] = useState(null); // { pendingApprovalEnabled }
+  const [settingsLoading, setSettingsLoading] = useState(true);
+  const [togglingSetting, setTogglingSetting] = useState(false);
+
+  const loadSettings = useCallback(async () => {
+    try {
+      const { data } = await api.get("/admin/settings");
+      setSettings(data.settings);
+    } catch (err) {
+      setBanner({ type: "error", text: err.response?.data?.message || "Could not load settings." });
+    } finally {
+      setSettingsLoading(false);
+    }
+  }, []);
+
+  const handleTogglePendingApproval = async () => {
+    if (!settings || togglingSetting) return;
+    const nextValue = !settings.pendingApprovalEnabled;
+    setTogglingSetting(true);
+    try {
+      const { data } = await api.patch("/admin/settings", { pendingApprovalEnabled: nextValue });
+      setSettings(data.settings);
+      setBanner({
+        type: "success",
+        text: data.settings.pendingApprovalEnabled
+          ? "Pending approval is now ON — new sign-ups will need admin approval before they can log in."
+          : "Pending approval is now OFF — new sign-ups are auto-approved and go straight to the dashboard."
+      });
+    } catch (err) {
+      setBanner({ type: "error", text: err.response?.data?.message || "Could not update this setting." });
+    } finally {
+      setTogglingSetting(false);
+    }
+  };
+
+  const loadUsers = useCallback(async (isSilent = false) => {
+    if (!isSilent) setLoading(true);
     try {
       const { data } = await api.get("/admin/users");
       setUsers(data.users);
+
+      // Notification: whenever a pending registration we haven't seen
+      // before shows up, surface a banner (and a native notification if
+      // the browser allows it) right here on the Admin Dashboard.
+      const pendingIds = data.users.filter((u) => !u.isApproved).map((u) => u.id);
+      if (knownPendingIds.current !== null) {
+        const newOnes = pendingIds.filter((id) => !knownPendingIds.current.has(id));
+        if (newOnes.length > 0) {
+          const names = data.users
+            .filter((u) => newOnes.includes(u.id))
+            .map((u) => u.name)
+            .join(", ");
+          setNotice(
+            newOnes.length === 1
+              ? `New registration awaiting approval: ${names}`
+              : `${newOnes.length} new registrations awaiting approval: ${names}`
+          );
+          if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+            new Notification("New account pending approval", {
+              body: newOnes.length === 1 ? `${names} just signed up.` : `${newOnes.length} new users signed up.`
+            });
+          }
+        }
+      }
+      knownPendingIds.current = new Set(pendingIds);
     } catch (err) {
-      setBanner({ type: "error", text: err.response?.data?.message || "Could not load users." });
+      if (!isSilent) {
+        setBanner({ type: "error", text: err.response?.data?.message || "Could not load users." });
+      }
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     loadUsers();
-  }, [loadUsers]);
+    loadSettings();
 
-  const filteredUsers = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return users;
-    return users.filter(
-      (u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
-    );
-  }, [users, search]);
+    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+
+    // Poll quietly in the background so new sign-ups show up without a
+    // manual refresh — this is what makes the approval queue feel "live".
+    const interval = setInterval(() => loadUsers(true), POLL_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [loadUsers, loadSettings]);
+
+  const matchesSearch = useCallback(
+    (u) => {
+      const q = search.trim().toLowerCase();
+      if (!q) return true;
+      return u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+    },
+    [search]
+  );
+
+  const pendingUsers = useMemo(() => users.filter((u) => !u.isApproved), [users]);
+  const approvedUsers = useMemo(() => users.filter((u) => u.isApproved), [users]);
+
+  const filteredPendingUsers = useMemo(() => pendingUsers.filter(matchesSearch), [pendingUsers, matchesSearch]);
+  const filteredUsers = useMemo(() => approvedUsers.filter(matchesSearch), [approvedUsers, matchesSearch]);
 
   const stats = useMemo(
     () => ({
       total: users.length,
-      active: users.filter((u) => u.isActive).length,
-      deactivated: users.filter((u) => !u.isActive).length,
+      pending: pendingUsers.length,
+      active: approvedUsers.filter((u) => u.isActive).length,
+      deactivated: approvedUsers.filter((u) => !u.isActive).length,
       admins: users.filter((u) => u.role === "admin").length
     }),
-    [users]
+    [users, pendingUsers, approvedUsers]
   );
 
   const confirmStatusChange = async () => {
@@ -114,6 +205,36 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleApprove = async (pendingUser) => {
+    setApprovingId(pendingUser.id);
+    try {
+      const { data } = await api.patch(`/admin/users/${pendingUser.id}/approve`);
+      setUsers((prev) => prev.map((u) => (u.id === data.user.id ? data.user : u)));
+      knownPendingIds.current?.delete(pendingUser.id);
+      setBanner({ type: "success", text: `${data.user.name} was approved and can now log in.` });
+    } catch (err) {
+      setBanner({ type: "error", text: err.response?.data?.message || "Could not approve this user." });
+    } finally {
+      setApprovingId(null);
+    }
+  };
+
+  const confirmReject = async () => {
+    if (!rejectTarget) return;
+    setRejecting(true);
+    try {
+      const { data } = await api.delete(`/admin/users/${rejectTarget.id}/reject`);
+      setUsers((prev) => prev.filter((u) => u.id !== rejectTarget.id));
+      knownPendingIds.current?.delete(rejectTarget.id);
+      setBanner({ type: "success", text: data.message || `${rejectTarget.name}'s registration was rejected.` });
+    } catch (err) {
+      setBanner({ type: "error", text: err.response?.data?.message || "Could not reject this registration." });
+    } finally {
+      setRejecting(false);
+      setRejectTarget(null);
+    }
+  };
+
   return (
     <div className="admin-shell">
       <header className="admin-topbar">
@@ -143,7 +264,18 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {notice && (
+          <div className="dashboard-error-banner admin-notice-banner">
+            <span>🔔 {notice}</span>
+            <button type="button" onClick={() => setNotice("")}>✕</button>
+          </div>
+        )}
+
         <div className="admin-stats">
+          <div className={`admin-stat-card ${stats.pending > 0 ? "is-pending" : ""}`}>
+            <span className="admin-stat-value">{stats.pending}</span>
+            <span className="admin-stat-label">Pending Approval</span>
+          </div>
           <div className="admin-stat-card">
             <span className="admin-stat-value">{stats.total}</span>
             <span className="admin-stat-label">Total Users</span>
@@ -162,6 +294,36 @@ export default function AdminDashboard() {
           </div>
         </div>
 
+        <div className="admin-setting-card">
+          <div className="admin-setting-info">
+            <h3>Pending Approval for Sign-Ups</h3>
+            <p>
+              {settingsLoading
+                ? "Loading current setting..."
+                : settings?.pendingApprovalEnabled
+                ? "New registrations wait in the queue above until an admin approves them."
+                : "New registrations are auto-approved and sent straight to the dashboard — the approval queue is skipped."}
+            </p>
+          </div>
+
+          <label
+            className={`toggle-switch ${settingsLoading || togglingSetting ? "is-disabled" : ""}`}
+            title={
+              settings?.pendingApprovalEnabled
+                ? "Turn off to let new sign-ups skip approval"
+                : "Turn on to require admin approval for new sign-ups"
+            }
+          >
+            <input
+              type="checkbox"
+              checked={Boolean(settings?.pendingApprovalEnabled)}
+              disabled={settingsLoading || togglingSetting}
+              onChange={handleTogglePendingApproval}
+            />
+            <span className="toggle-slider" />
+          </label>
+        </div>
+
         <div className="admin-toolbar">
           <input
             type="text"
@@ -176,13 +338,64 @@ export default function AdminDashboard() {
           <div className="dashboard-loading">
             <Loader label="Loading users" />
           </div>
-        ) : filteredUsers.length === 0 ? (
-          <div className="dashboard-loading">
-            {users.length === 0 ? "No users have registered yet." : "No users match your search."}
-          </div>
         ) : (
-          <div className="admin-user-grid">
-            {filteredUsers.map((u) => {
+          <>
+            {filteredPendingUsers.length > 0 && (
+              <section className="admin-pending-section">
+                <h2 className="admin-section-title">
+                  Pending Approvals {" "}
+                  <span className="admin-section-count">{filteredPendingUsers.length}</span>
+                </h2>
+
+                <div className="admin-user-grid">
+                  {filteredPendingUsers.map((u) => (
+                    <div className="admin-user-card admin-user-card-pending" key={u.id}>
+                      <div className="admin-user-card-top">
+                        <div className="account-avatar-lg admin-user-avatar">{getInitials(u.name)}</div>
+                        <div className="admin-user-identity">
+                          <h3>{u.name}</h3>
+                          <p>{u.email}</p>
+                        </div>
+                      </div>
+
+                      <div className="admin-user-badges">
+                        <span className="admin-badge status-pending">Awaiting Approval</span>
+                        <span className="admin-badge admin-badge-date">Requested {formatDate(u.createdAt)}</span>
+                      </div>
+
+                      <div className="admin-user-actions admin-user-actions-pending">
+                        <button
+                          type="button"
+                          className="admin-action-btn accent"
+                          disabled={approvingId === u.id}
+                          onClick={() => handleApprove(u)}
+                        >
+                          {approvingId === u.id ? "Approving..." : "Approve"}
+                        </button>
+                        <button
+                          type="button"
+                          className="admin-action-btn danger"
+                          disabled={approvingId === u.id}
+                          onClick={() => setRejectTarget(u)}
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            <h2 className="admin-section-title">All Users</h2>
+
+            {filteredUsers.length === 0 ? (
+              <div className="dashboard-loading">
+                {approvedUsers.length === 0 ? "No approved users yet." : "No users match your search."}
+              </div>
+            ) : (
+              <div className="admin-user-grid">
+                {filteredUsers.map((u) => {
               const isSelf = u.id === currentUser?.id;
               return (
                 <div className="admin-user-card" key={u.id}>
@@ -230,8 +443,10 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               );
-            })}
-          </div>
+                })}
+              </div>
+            )}
+          </>
         )}
       </main>
 
@@ -272,6 +487,18 @@ export default function AdminDashboard() {
           loading={deleting}
           onConfirm={confirmDelete}
           onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
+      {rejectTarget && (
+        <ConfirmModal
+          title={`Reject ${rejectTarget.name}'s registration?`}
+          message="This permanently deletes their pending account from the database. They will need to submit a brand-new registration to request access again."
+          confirmLabel="Reject"
+          variant="danger"
+          loading={rejecting}
+          onConfirm={confirmReject}
+          onCancel={() => setRejectTarget(null)}
         />
       )}
     </div>
