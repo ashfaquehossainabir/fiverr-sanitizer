@@ -74,11 +74,24 @@ export default function GoogleAuthButton({ text = "continue_with", onCredential,
   useEffect(() => {
     if (!ready || !containerRef.current || !window.google?.accounts?.id) return;
 
-    containerRef.current.innerHTML = "";
+    let lastWidth = 0;
 
     const renderButton = () => {
-      const width = Math.min(containerRef.current.offsetWidth || 360, 400);
-      window.google.accounts.id.renderButton(containerRef.current, {
+      const node = containerRef.current;
+      if (!node) return;
+
+      const width = Math.min(node.offsetWidth || 360, 400);
+
+      // Skip re-rendering if the width barely moved — re-rendering always
+      // replaces the iframe, which itself can nudge the container's size
+      // and re-trigger the observer. Without this guard that becomes an
+      // infinite render loop (visible as a flickering cursor over the
+      // button as it's constantly torn down and rebuilt).
+      if (Math.abs(width - lastWidth) < 2) return;
+      lastWidth = width;
+
+      node.innerHTML = "";
+      window.google.accounts.id.renderButton(node, {
         type: "standard",
         theme: "outline",
         size: "large",
