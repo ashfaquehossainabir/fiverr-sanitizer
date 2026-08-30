@@ -83,6 +83,7 @@ userSchema.methods.toSafeObject = function toSafeObject() {
     isActive: this.isActive,
     isApproved: this.isApproved,
     authProvider: this.authProvider,
+    hasPassword: Boolean(this.password),
     createdAt: this.createdAt
   };
 };

@@ -85,6 +85,7 @@ export function AuthProvider({ children }) {
 
   const updatePassword = useCallback(async (payload) => {
     const { data } = await api.put("/users/password", payload);
+    if (data.user) setUser(data.user);
     return data;
   }, []);
 

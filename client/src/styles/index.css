@@ -1227,6 +1227,13 @@ a {
   margin-bottom: 14px;
 }
 
+.settings-hint {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--color-ink-soft);
+  margin-bottom: 12px;
+}
+
 .settings-form {
   display: flex;
   flex-direction: column;

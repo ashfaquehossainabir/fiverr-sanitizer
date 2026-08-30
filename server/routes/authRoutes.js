@@ -140,13 +140,13 @@ router.post("/google", async (req, res, next) => {
 
     const email = payload.email.toLowerCase().trim();
 
-    let user = await User.findOne({ googleId: payload.sub });
+    let user = await User.findOne({ googleId: payload.sub }).select("+password");
     let justCreated = false;
 
     if (!user) {
       // No Google-linked account yet — if a local account already uses
       // this (verified) email, link Google to it instead of duplicating.
-      user = await User.findOne({ email });
+      user = await User.findOne({ email }).select("+password");
       if (user && !user.googleId) {
         user.googleId = payload.sub;
         await user.save();
