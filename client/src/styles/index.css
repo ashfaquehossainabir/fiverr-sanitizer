@@ -961,6 +961,7 @@ a {
   border: none;
   font-size: 12px;
   font-weight: 600;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .sidebar-new-tab-actions button[type="submit"] {
@@ -968,9 +969,19 @@ a {
   color: var(--color-ink);
 }
 
+.sidebar-new-tab-actions button[type="submit"]:hover {
+  background: var(--color-accent-dark);
+  color: #fff;
+}
+
 .sidebar-new-tab-actions button[type="button"] {
   background: rgba(255, 255, 255, 0.08);
   color: #E7F0EC;
+}
+
+.sidebar-new-tab-actions button[type="button"]:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
 }
 
 .sidebar-tabs {
@@ -1345,6 +1356,13 @@ a {
   color: var(--color-ink-soft);
   font-size: 13px;
   font-weight: 600;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.cancel-btn:hover:not(:disabled) {
+  background: var(--color-surface-alt);
+  border-color: var(--color-ink-faint);
+  color: var(--color-ink);
 }
 
 .logout-btn {
