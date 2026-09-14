@@ -1171,6 +1171,11 @@ a {
 
 .modal.account-modal {
   max-width: 480px;
+  min-height: 480px;
+  max-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .modal-close {
@@ -1196,6 +1201,7 @@ a {
   gap: 14px;
   margin-bottom: 24px;
   padding-right: 30px;
+  flex-shrink: 0;
 }
 
 .account-avatar-lg {
@@ -1228,6 +1234,10 @@ a {
   display: flex;
   flex-direction: column;
   gap: 26px;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 4px;
 }
 
 .settings-section h3 {
@@ -2538,6 +2548,10 @@ textarea:focus {
   .admin-user-grid {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   }
+
+  .modal.account-modal {
+    max-width: 440px;
+  }
 }
 
 /* Tablets (portrait) */
@@ -2616,6 +2630,21 @@ textarea:focus {
   .admin-user-grid {
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   }
+
+  .modal-backdrop {
+    padding: 30px 14px;
+  }
+
+  .modal.account-modal {
+    max-width: 92vw;
+    padding: 28px 24px 24px;
+  }
+
+  .account-avatar-lg {
+    width: 50px;
+    height: 50px;
+    font-size: 16px;
+  }
 }
 
 /* Mobile phones */
@@ -2648,14 +2677,49 @@ textarea:focus {
     text-align: center;
   }
 
+  .modal-backdrop {
+    padding: 20px 10px;
+    align-items: center;
+  }
+
   .account-modal-header {
     flex-direction: column;
     align-items: flex-start;
     padding-right: 0;
+    gap: 10px;
   }
 
   .modal.account-modal {
-    padding: 26px 18px 22px;
+    max-width: 100%;
+    padding: 24px 16px 20px;
+    min-height: 0;
+    max-height: calc(100vh - 32px);
+    border-radius: var(--radius-md);
+  }
+
+  .account-modal-body {
+    padding-right: 0;
+    gap: 20px;
+  }
+
+  .account-avatar-lg {
+    width: 46px;
+    height: 46px;
+    font-size: 15px;
+  }
+
+  .account-modal-header h2 {
+    font-size: 16px;
+  }
+
+  .settings-save-btn,
+  .delete-account-btn {
+    align-self: stretch;
+    text-align: center;
+  }
+
+  .logout-btn {
+    padding: 11px;
   }
 
   .danger-actions {
@@ -2821,6 +2885,69 @@ textarea:focus {
   .admin-stat-card {
     flex-direction: row;
     align-items: center;
+  }
+
+  .modal.account-modal {
+    padding: 20px 14px 18px;
+  }
+
+  .modal-close {
+    width: 28px;
+    height: 28px;
+    top: 14px;
+    right: 14px;
+    font-size: 12px;
+  }
+
+  .account-avatar-lg {
+    width: 42px;
+    height: 42px;
+    font-size: 14px;
+  }
+
+  .account-modal-header h2 {
+    font-size: 15px;
+  }
+
+  .account-modal-header p {
+    font-size: 12px;
+  }
+
+  .account-modal-body {
+    gap: 18px;
+  }
+
+  .settings-form input {
+    padding: 9px 10px;
+    font-size: 13px;
+  }
+
+  .settings-save-btn,
+  .delete-account-btn,
+  .cancel-btn {
+    padding: 10px 14px;
+    font-size: 12.5px;
+  }
+}
+
+/* Short viewports (landscape phones, small laptop windows) */
+@media (max-height: 640px) {
+  .modal-backdrop {
+    padding: 16px;
+    align-items: center;
+  }
+
+  .modal.account-modal {
+    min-height: 0;
+    max-height: calc(100vh - 32px);
+  }
+
+  .account-modal-header {
+    margin-bottom: 14px;
+  }
+
+  .account-modal-body {
+    gap: 16px;
   }
 }
 
