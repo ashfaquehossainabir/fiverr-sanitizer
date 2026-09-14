@@ -28,6 +28,8 @@ export default function AccountModal({ onClose }) {
 
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
     setProfileMsg({ type: "", text: "" });
@@ -107,8 +109,23 @@ export default function AccountModal({ onClose }) {
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal account-modal" onClick={(e) => e.stopPropagation()}>
+    <div
+      className={`modal-backdrop${isExpanded ? " modal-backdrop-expanded" : ""}`}
+      onClick={onClose}
+    >
+      <div
+        className={`modal account-modal${isExpanded ? " account-modal-expanded" : ""}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          type="button"
+          className="modal-expand-btn"
+          onClick={() => setIsExpanded((prev) => !prev)}
+          aria-label={isExpanded ? "Collapse modal" : "Expand modal"}
+          title={isExpanded ? "Collapse" : "Expand"}
+        >
+          {isExpanded ? "⤡" : "⤢"}
+        </button>
         <button type="button" className="modal-close" onClick={onClose} aria-label="Close settings">
           ✕
         </button>
