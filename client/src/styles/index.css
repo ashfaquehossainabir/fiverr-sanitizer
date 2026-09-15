@@ -1171,13 +1171,14 @@ a {
 
 .modal.account-modal {
   max-width: 480px;
-  min-height: 420px;
-  height: 420px;
-  max-height: calc(100vh - 80px);
+  width: 100%;
+  height: auto;
+  min-height: 480px;
+  max-height: min(640px, calc(100vh - 80px));
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: height 0.2s ease, max-height 0.2s ease, border-radius 0.2s ease;
+  transition: height 0.2s ease, max-height 0.2s ease, min-height 0.2s ease, border-radius 0.2s ease;
 }
 
 .modal-backdrop.modal-backdrop-expanded {
@@ -2596,6 +2597,7 @@ textarea:focus {
 
   .modal.account-modal {
     max-width: 440px;
+    max-height: min(640px, calc(100vh - 60px));
   }
 }
 
@@ -2683,6 +2685,8 @@ textarea:focus {
   .modal.account-modal {
     max-width: 92vw;
     padding: 28px 24px 24px;
+    min-height: 0;
+    max-height: calc(100vh - 60px);
   }
 
   .account-avatar-lg {
@@ -2738,7 +2742,7 @@ textarea:focus {
     max-width: 100%;
     padding: 24px 16px 20px;
     min-height: 0;
-    height: 460px;
+    height: auto;
     max-height: calc(100vh - 32px);
     border-radius: var(--radius-md);
   }
@@ -2940,7 +2944,8 @@ textarea:focus {
 
   .modal.account-modal {
     padding: 20px 14px 18px;
-    height: 440px;
+    height: auto;
+    max-height: calc(100vh - 24px);
   }
 
   .modal-close {
