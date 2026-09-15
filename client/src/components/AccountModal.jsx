@@ -271,7 +271,9 @@ export default function AccountModal({ onClose }) {
               </form>
             )}
           </section>
+        </div>
 
+        <div className="account-modal-footer">
           <button type="button" className="logout-btn" onClick={() => setShowLogoutConfirm(true)}>
             Log Out
           </button>
