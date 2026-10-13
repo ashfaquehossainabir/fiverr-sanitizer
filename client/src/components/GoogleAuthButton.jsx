@@ -122,10 +122,18 @@ export default function GoogleAuthButton({ text = "continue_with", onCredential,
       const swap = () => {
         if (myToken !== token) return;
         cleanupPending?.();
-        Array.from(host.children).forEach((child) => {
-          if (child !== next) child.remove();
-        });
+
+        // Drop any layer that is still mid fade-out from an earlier swap.
+        host.querySelectorAll(".is-leaving").forEach((el) => el.remove());
+
+        // Crossfade: the previous button fades out while the new one fades in
+        // (the transitions live in CSS), then the old one is removed.
+        const leaving = Array.from(host.children).filter((child) => child !== next);
+        leaving.forEach((el) => el.classList.add("is-leaving"));
+        setTimeout(() => leaving.forEach((el) => el.remove()), 320);
+
         next.classList.remove("is-pending");
+        host.dataset.loaded = "true"; // hides the loading placeholder
       };
 
       const watchIframe = () => {

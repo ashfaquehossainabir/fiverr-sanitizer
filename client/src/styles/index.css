@@ -555,16 +555,60 @@ a {
   color-scheme: light;
 }
 
+/* Loading placeholder: holds the button's exact footprint (so nothing shifts)
+   and shimmers until Google's iframe is ready, then fades away. */
+.google-auth-button::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 2px;
+  bottom: 2px;
+  width: min(100%, 400px);
+  transform: translateX(-50%);
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  background:
+    linear-gradient(100deg, transparent 20%, rgba(127, 127, 127, 0.16) 50%, transparent 80%)
+      0 0 / 220% 100% no-repeat,
+    var(--color-surface-alt);
+  animation: google-btn-shimmer 1.3s ease-in-out infinite;
+  opacity: 1;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.google-auth-button[data-loaded="true"]::before {
+  opacity: 0;
+  animation: none;
+}
+
+@keyframes google-btn-shimmer {
+  from { background-position: 150% 0, 0 0; }
+  to   { background-position: -50% 0, 0 0; }
+}
+
 .google-auth-button-layer {
   position: absolute;
   inset: 0;
   display: flex;
   justify-content: center;
   align-items: center;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: opacity 0.28s ease, transform 0.28s ease;
 }
 
+/* new button: invisible until its iframe has loaded, then eases in */
 .google-auth-button-layer.is-pending {
   opacity: 0;
+  transform: translateY(4px) scale(0.985);
+  pointer-events: none;
+}
+
+/* old button: eases out while the new one eases in */
+.google-auth-button-layer.is-leaving {
+  opacity: 0;
+  transform: scale(0.99);
   pointer-events: none;
 }
 
