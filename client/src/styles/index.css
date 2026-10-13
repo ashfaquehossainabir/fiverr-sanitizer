@@ -545,12 +545,27 @@ a {
 }
 
 .google-auth-button {
-  display: flex;
-  justify-content: center;
+  position: relative;
+  display: block;
+  height: 44px; /* fixed, so re-rendering the Google iframe can never shift the layout */
   min-height: 44px;
+  overflow: hidden;
   /* The Google button iframe is always "light" scheme; matching it here keeps
      the browser from painting an opaque white box behind it in dark mode. */
   color-scheme: light;
+}
+
+.google-auth-button-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.google-auth-button-layer.is-pending {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .google-auth-button.is-disabled {
