@@ -3918,9 +3918,11 @@ textarea:focus {
   background: var(--color-deep);
 }
 
-/* auth logo mark ("FS"): light text instead of green on the deep dark tile */
-:root[data-theme="dark"] .auth-logo {
-  color: var(--color-ink);
+/* auth logo ("FS" mark + wordmark): green text in dark mode */
+:root[data-theme="dark"] .auth-logo,
+:root[data-theme="dark"] .auth-wordmark-text,
+:root[data-theme="dark"] .auth-panel-mobile-brand span:last-child {
+  color: var(--color-accent-dark);
 }
 
 :root[data-theme="dark"] .sidebar {
