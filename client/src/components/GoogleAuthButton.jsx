@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTheme } from "../context/ThemeContext.jsx";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const SCRIPT_SRC = "https://accounts.google.com/gsi/client";
@@ -40,6 +41,7 @@ function loadGoogleScript() {
  * the auth page still works fine without it set up.
  */
 export default function GoogleAuthButton({ text = "continue_with", onCredential, onError, disabled = false }) {
+  const { theme } = useTheme();
   const containerRef = useRef(null);
   const [ready, setReady] = useState(false);
 
@@ -93,7 +95,9 @@ export default function GoogleAuthButton({ text = "continue_with", onCredential,
       node.innerHTML = "";
       window.google.accounts.id.renderButton(node, {
         type: "standard",
-        theme: "outline",
+        // Google renders the button inside an iframe we can't style with CSS,
+        // so we pick the matching built-in variant for the current app theme.
+        theme: theme === "dark" ? "filled_black" : "outline",
         size: "large",
         shape: "rectangular",
         text,
@@ -108,7 +112,7 @@ export default function GoogleAuthButton({ text = "continue_with", onCredential,
     resizeObserver.observe(containerRef.current);
 
     return () => resizeObserver.disconnect();
-  }, [ready, text]);
+  }, [ready, text, theme]); // re-render the button whenever the theme switches
 
   if (!GOOGLE_CLIENT_ID) return null;
 

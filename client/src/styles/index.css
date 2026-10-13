@@ -548,6 +548,9 @@ a {
   display: flex;
   justify-content: center;
   min-height: 44px;
+  /* The Google button iframe is always "light" scheme; matching it here keeps
+     the browser from painting an opaque white box behind it in dark mode. */
+  color-scheme: light;
 }
 
 .google-auth-button.is-disabled {
