@@ -549,7 +549,8 @@ a {
   display: block;
   height: 44px; /* fixed, so re-rendering the Google iframe can never shift the layout */
   min-height: 44px;
-  overflow: hidden;
+  /* no overflow clipping here: it cut off the button's edges/focus state */
+  -webkit-tap-highlight-color: transparent;
   /* The Google button iframe is always "light" scheme; matching it here keeps
      the browser from painting an opaque white box behind it in dark mode. */
   color-scheme: light;
@@ -585,6 +586,21 @@ a {
 @keyframes google-btn-shimmer {
   from { background-position: 150% 0, 0 0; }
   to   { background-position: -50% 0, 0 0; }
+}
+
+.google-auth-button,
+.google-auth-button:focus,
+.google-auth-button:focus-within,
+.google-auth-button-layer,
+.google-auth-button-layer:focus,
+.google-auth-button-layer:focus-within,
+.google-auth-button iframe,
+.google-auth-button iframe:focus,
+.google-auth-button iframe:focus-visible,
+.google-auth-button div[role="button"]:focus,
+.google-auth-button div[role="button"]:focus-visible {
+  outline: none !important;
+  box-shadow: none;
 }
 
 .google-auth-button-layer {
