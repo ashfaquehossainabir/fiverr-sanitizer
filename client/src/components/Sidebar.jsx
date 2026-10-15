@@ -106,7 +106,7 @@ export default function Sidebar({
           </button>
         </div>
 
-        <p className="sidebar-section-label">Menu</p>
+        <p className="sidebar-section-label sidebar-menu-label">Menu</p>
         <nav className="sidebar-views" aria-label="Sections">
           {VIEWS.map((v) => (
             <button

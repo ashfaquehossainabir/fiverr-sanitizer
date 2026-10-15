@@ -5853,3 +5853,12 @@ kbd {
     display: block;
   }
 }
+
+/* Mobile / tablet drawer: the bottom nav already covers the section links,
+  so the drawer shows only the tabs list. Desktop/laptop is unchanged. */
+@media (max-width: 860px) {
+  .sidebar-menu-label,
+  .sidebar-views {
+    display: none;
+  }
+}
