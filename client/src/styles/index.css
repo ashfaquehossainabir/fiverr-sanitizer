@@ -6871,6 +6871,7 @@ kbd {
 
 /* ==========================================================================
    v9.7 — RESPONSIVE FIX: stat cards
+   (Today strip rules live with the original v9.3 block, matching the GitHub repo.)
    ========================================================================== */
 
 /* ---------- Overview stat cards ---------- */
@@ -6982,8 +6983,15 @@ kbd {
   }
 }
 
+
+
 /* ==========================================================================
-   v9.8 — TODAY STRIP 
+   v9.8 — TODAY STRIP polish (keep last; single source of truth for the strip)
+   Lays out by the strip's own width (container query), so it adapts to the
+   sidebar instead of the viewport:
+     >= 900px  one row: greeting left, chips right      (desktop / wide laptop)
+     640-899   greeting on top, chips share one row     (small laptop / tablet)
+     < 640     2-column chip grid, odd chip spans row   (phone)
    ========================================================================== */
 .today-wrap {
   container-type: inline-size;
@@ -7176,6 +7184,15 @@ kbd {
 @media (max-width: 860px) {
   .sidebar-menu-label,
   .sidebar-views {
+    display: none;
+  }
+}
+
+/* Laptops only (1025px-1439px): hide the Search item in the sidebar menu.
+   Search is still reachable from the top bar and Ctrl/Cmd+K. Mobile, tablet,
+   desktop (1440px+) and large desktop are unchanged. */
+@media (min-width: 1025px) and (max-width: 1439px) {
+  .sidebar-view-btn.sidebar-view-search {
     display: none;
   }
 }

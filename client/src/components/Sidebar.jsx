@@ -5,6 +5,7 @@ import ConfirmModal from "./ConfirmModal.jsx";
 const VIEWS = [
   { id: "workspace", label: "Workspace", icon: "✎" },
   { id: "overview", label: "Overview", icon: "▤" },
+  { id: "planner", label: "Planner", icon: "✓" },
   { id: "clients", label: "Clients", icon: "☺" },
   { id: "templates", label: "Templates", icon: "❝" },
   { id: "search", label: "Search", icon: "⌕" }
@@ -14,6 +15,7 @@ export default function Sidebar({
   view,
   onChangeView,
   followUpCount = 0,
+  taskCount = 0,
   tabs,
   activeTabId,
   onSelectTab,
@@ -112,7 +114,7 @@ export default function Sidebar({
             <button
               key={v.id}
               type="button"
-              className={`sidebar-view-btn ${view === v.id ? "active" : ""}`}
+              className={`sidebar-view-btn ${view === v.id ? "active" : ""} ${v.id === "search" ? "sidebar-view-search" : ""}`}
               onClick={() => {
                 onChangeView(v.id);
                 onClose();
@@ -122,6 +124,9 @@ export default function Sidebar({
               <span>{v.label}</span>
               {v.id === "clients" && followUpCount > 0 && (
                 <span className="sidebar-badge" title="Follow-ups due">{followUpCount}</span>
+              )}
+              {v.id === "planner" && taskCount > 0 && (
+                <span className="sidebar-badge" title="Tasks due today or overdue">{taskCount}</span>
               )}
             </button>
           ))}
